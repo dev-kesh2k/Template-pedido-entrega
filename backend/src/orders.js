@@ -26,6 +26,9 @@ export function serializeOrder(o) {
     complement: o.complement,
     district: o.district,
     reference: o.reference,
+    latitude: o.latitude,
+    longitude: o.longitude,
+    voltage: o.voltage,
     deliveryDate: o.deliveryDate,
     deliveryWindow: o.deliveryWindow,
     subtotalCents: o.subtotalCents,
@@ -61,6 +64,16 @@ export async function createOrder(body) {
   const houseNumber = text(body.houseNumber, 'Número', { required: true, max: 20 });
   const complement = text(body.complement, 'Complemento', { max: 80 });
   const reference = text(body.reference, 'Ponto de referência', { max: 160 });
+  const voltage = Number(body.voltage);
+  if (![127, 220].includes(voltage)) throw new HttpError(400, 'Informe a voltagem da máquina: 127 V ou 220 V');
+  const hasPin = body.latitude !== null && body.latitude !== undefined && body.latitude !== '';
+  let latitude = null;
+  let longitude = null;
+  if (hasPin) {
+    latitude = Number(body.latitude);
+    longitude = Number(body.longitude);
+    if (!Number.isFinite(latitude) || !Number.isFinite(longitude) || Math.abs(latitude) > 90 || Math.abs(longitude) > 180) throw new HttpError(400, 'Localização no mapa inválida');
+  }
   const notes = text(body.notes, 'Observações', { max: 500 });
   const paymentMethod = oneOf(body.paymentMethod, 'Forma de pagamento', PAYMENT_METHODS);
 
@@ -110,6 +123,9 @@ export async function createOrder(body) {
         complement,
         district,
         reference,
+        latitude,
+        longitude,
+        voltage,
         deliveryDate: body.deliveryDate,
         deliveryWindow: body.deliveryWindow,
         subtotalCents: subtotal,

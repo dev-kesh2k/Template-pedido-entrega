@@ -159,6 +159,9 @@ export interface Order {
   complement: string;
   district: string;
   reference: string;
+  latitude: number | null;
+  longitude: number | null;
+  voltage: 127 | 220;
   deliveryDate: string;
   deliveryWindow: string;
   subtotalCents: number;

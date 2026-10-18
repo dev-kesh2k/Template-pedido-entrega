@@ -55,6 +55,9 @@ model Order {
   complement     String        @default("")
   district       String
   reference      String        @default("")
+  latitude       Float?
+  longitude      Float?
+  voltage        Int // voltagem da chopeira/máquina: 127 | 220
   deliveryDate   String // YYYY-MM-DD
   deliveryWindow String
   subtotalCents  Int

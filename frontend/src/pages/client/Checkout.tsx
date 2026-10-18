@@ -1,4 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react';
+import { MapPin } from 'lucide-react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { api, useApi, type Catalog, type Order, type PaymentMethod } from '../../api';
 import { clearCart, getCustomer, isValidPhone, maskPhone, saveCustomer, useCart } from '../../client';
@@ -6,6 +7,7 @@ import { useConfig, reloadConfig } from '../../config';
 import { FullPage } from '../../layout';
 import { ErrorBox, Field, FormError, Loading, PageHead, Radio } from '../../ui';
 import { Calendar } from '../../calendar';
+import { MapPicker, type Pin } from '../../MapPicker';
 import { brl, fmtLong, fmtWindow, METHOD, parseMoney } from '../../util';
 
 export default function Checkout() {
@@ -28,6 +30,9 @@ export default function Checkout() {
   const [win, setWin] = useState('');
   const [method, setMethod] = useState<PaymentMethod>('pix');
   const [change, setChange] = useState('');
+  const [voltage, setVoltage] = useState<127 | 220 | null>(null);
+  const [pin, setPin] = useState<Pin | null>(null);
+  const [mapOpen, setMapOpen] = useState(false);
   const [err, setErr] = useState('');
   const [busy, setBusy] = useState(false);
 
@@ -54,6 +59,7 @@ export default function Checkout() {
     e.preventDefault();
     setErr('');
     if (!isValidPhone(f.phone)) return setErr('Informe o celular com DDD.');
+    if (!voltage) return setErr('Escolha a voltagem da máquina: 127 V ou 220 V.');
     if (!day || !win) return setErr('Escolha o dia e o horário da entrega.');
     const changeFor = method === 'cash' ? parseMoney(change) || 0 : 0;
     if (changeFor && changeFor < total) return setErr(`O troco deve ser para mais de ${brl(total)}.`);
@@ -63,6 +69,9 @@ export default function Checkout() {
         ...f,
         deliveryDate: day,
         deliveryWindow: win,
+        voltage,
+        latitude: pin?.lat ?? null,
+        longitude: pin?.lng ?? null,
         paymentMethod: method,
         changeForCents: changeFor,
         items: lines.map((l) => ({ productId: l.p.id, quantity: l.qty })),
@@ -125,6 +134,35 @@ export default function Checkout() {
           <Field label="Ponto de referência (opcional)">
             <input className="input" value={f.reference} onChange={set('reference')} maxLength={160} />
           </Field>
+          <div className="flex flex-col gap-3">
+            <button type="button" className={`card flex min-h-[56px] items-center gap-3 px-4 text-left ${pin ? 'border-accent' : ''}`} onClick={() => setMapOpen((v) => !v)} aria-expanded={mapOpen}>
+              <MapPin size={22} className="shrink-0 text-accent" />
+              <span className="min-w-0 flex-1">
+                <span className="block font-medium">{pin ? 'Local marcado no mapa' : 'Marcar o local no mapa'}</span>
+                <span className="block text-sm text-muted">Opcional, ajuda o entregador a achar você</span>
+              </span>
+            </button>
+            {mapOpen && <MapPicker value={pin} onChange={setPin} addressQuery={[f.street, f.houseNumber, f.district].filter(Boolean).join(', ')} />}
+          </div>
+        </section>
+
+        <section className="flex flex-col gap-3">
+          <h2 className="h2">Voltagem da máquina</h2>
+          <p className="text-sm text-muted">Informe a tomada onde a chopeira será ligada. Obrigatório.</p>
+          <div className="grid grid-cols-2 gap-3" role="radiogroup" aria-label="Voltagem da máquina">
+            {([127, 220] as const).map((v) => (
+              <button
+                type="button"
+                key={v}
+                role="radio"
+                aria-checked={voltage === v}
+                onClick={() => setVoltage(v)}
+                className={`card flex min-h-[64px] items-center justify-center gap-3 text-lg font-bold ${voltage === v ? 'border-accent text-accent' : ''}`}
+              >
+                <Radio on={voltage === v} /> {v} V
+              </button>
+            ))}
+          </div>
         </section>
 
         <section className="flex flex-col gap-3">
