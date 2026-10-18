@@ -1,0 +1,11 @@
+{
+  "name": "Template App",
+  "short_name": "Template App",
+  "description": "Pedidos e entrega",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0F0D0A",
+  "theme_color": "#0F0D0A",
+  "icons": [{ "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
+}
