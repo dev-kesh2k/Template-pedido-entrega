@@ -96,7 +96,7 @@ function Store() {
         <Field label="Telefone">
           <input className="input" inputMode="tel" value={s.phone} onChange={set('phone')} maxLength={30} />
         </Field>
-        <Field label="WhatsApp da loja" hint="Recebe o resumo dos pedidos">
+        <Field label="WhatsApp da loja" hint="Recebe o resumo dos pedidos e as mensagens do botão Suporte">
           <input className="input" inputMode="tel" value={s.whatsapp} onChange={set('whatsapp')} maxLength={30} />
         </Field>
       </div>
@@ -112,7 +112,7 @@ function Store() {
       <Field label="Sobre a loja">
         <textarea className="input min-h-[120px]" value={s.about} onChange={set('about')} maxLength={1500} />
       </Field>
-      <FormError message={err} />
+      <FormError message={err} onClose={() => setErr('')} />
       <button className="btn-primary" disabled={busy}>
         {busy ? 'Salvando…' : 'Salvar'}
       </button>
@@ -153,7 +153,7 @@ function Account() {
           <PasswordInput autoComplete="current-password" value={f.currentPassword} onChange={(e) => setF({ ...f, currentPassword: e.target.value })} required />
         </Field>
       )}
-      <FormError message={err} />
+      <FormError message={err} onClose={() => setErr('')} />
       <button className="btn-secondary">Salvar conta</button>
       <button type="button" className="btn-danger md:hidden" onClick={signOut}>
         <LogOut size={18} /> Sair
