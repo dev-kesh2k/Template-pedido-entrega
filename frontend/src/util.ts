@@ -88,7 +88,7 @@ export function orderText(o: Order, storeName: string) {
   const lines = [
     `*Pedido #${o.number}* — ${storeName}`,
     ...o.items.map((i) => `• ${i.quantity}× ${i.name} (${brl(i.unitPriceCents * i.quantity)})`),
-    `Entrega: ${brl(o.feeCents)}`,
+    'Entrega: grátis',
     `*Total: ${brl(o.totalCents)}* · ${METHOD[o.paymentMethod]}${o.changeForCents ? ` (troco para ${brl(o.changeForCents)})` : ''}`,
     `📅 ${fmtLong(o.deliveryDate)}, ${fmtWindow(o.deliveryWindow)}`,
     `📍 ${addressLine(o)}${o.reference ? ` (${o.reference})` : ''}`,

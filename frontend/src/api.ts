@@ -132,17 +132,9 @@ export interface Product {
   sortOrder?: number;
 }
 
-export interface Zone {
-  id: string;
-  name: string;
-  feeCents: number;
-  active?: boolean;
-}
-
 export interface Catalog {
   categories: Category[];
   products: Product[];
-  zones: Zone[];
 }
 
 export type OrderStatus = 'received' | 'confirmed' | 'out_for_delivery' | 'delivered' | 'cancelled';
@@ -167,11 +159,9 @@ export interface Order {
   complement: string;
   district: string;
   reference: string;
-  zoneName: string;
   deliveryDate: string;
   deliveryWindow: string;
   subtotalCents: number;
-  feeCents: number;
   totalCents: number;
   paymentMethod: PaymentMethod;
   changeForCents: number;

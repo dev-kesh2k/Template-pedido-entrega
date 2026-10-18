@@ -93,8 +93,8 @@ export default function OrderDetail() {
             </div>
           ))}
           <div className="mt-2 flex justify-between border-t border-line pt-3 text-sm">
-            <span className="text-soft">Entrega ({o.zoneName})</span>
-            <span>{o.feeCents ? brl(o.feeCents) : 'Grátis'}</span>
+            <span className="text-soft">Entrega</span>
+            <span>Grátis</span>
           </div>
           <div className="flex justify-between text-lg font-bold">
             <span>Total</span>

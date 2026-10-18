@@ -26,11 +26,9 @@ export function serializeOrder(o) {
     complement: o.complement,
     district: o.district,
     reference: o.reference,
-    zoneName: o.zoneName,
     deliveryDate: o.deliveryDate,
     deliveryWindow: o.deliveryWindow,
     subtotalCents: o.subtotalCents,
-    feeCents: o.feeCents,
     totalCents: o.totalCents,
     paymentMethod: o.paymentMethod,
     changeForCents: o.changeForCents,
@@ -58,6 +56,7 @@ export async function createOrder(body) {
 
   const { raw, key } = mobile(body.phone);
   const customerName = text(body.customerName, 'Nome', { required: true, max: 80 });
+  const district = text(body.district, 'Bairro', { required: true, max: 80 });
   const street = text(body.street, 'Endereço', { required: true, max: 160 });
   const houseNumber = text(body.houseNumber, 'Número', { required: true, max: 20 });
   const complement = text(body.complement, 'Complemento', { max: 80 });
@@ -67,9 +66,6 @@ export async function createOrder(body) {
 
   if (!isDay(body.deliveryDate) || !deliveryDates(s).includes(body.deliveryDate)) throw new HttpError(400, 'Escolha uma data de entrega disponível');
   if (!windowsFor(s, body.deliveryDate).includes(body.deliveryWindow)) throw new HttpError(400, 'Escolha um horário de entrega disponível');
-
-  const zone = await prisma.deliveryZone.findFirst({ where: { id: String(body.zoneId || ''), active: true } });
-  if (!zone) throw new HttpError(400, 'Escolha o bairro de entrega');
 
   if (!Array.isArray(body.items) || !body.items.length) throw new HttpError(400, 'O carrinho está vazio');
   if (body.items.length > 50) throw new HttpError(400, 'Itens demais no pedido');
@@ -96,7 +92,7 @@ export async function createOrder(body) {
       items.push({ productId: p.id, name: p.name, unit: p.unit, unitPriceCents: p.priceCents, quantity: qty });
     }
     if (subtotal < s.minOrderCents) throw new HttpError(400, `Pedido mínimo de ${brl(s.minOrderCents)} (sem a entrega)`);
-    const total = subtotal + zone.feeCents;
+    const total = subtotal; // entrega grátis
 
     let changeForCents = 0;
     if (paymentMethod === 'cash' && body.changeForCents) {
@@ -112,14 +108,11 @@ export async function createOrder(body) {
         street,
         houseNumber,
         complement,
-        district: zone.name,
+        district,
         reference,
-        zoneId: zone.id,
-        zoneName: zone.name,
         deliveryDate: body.deliveryDate,
         deliveryWindow: body.deliveryWindow,
         subtotalCents: subtotal,
-        feeCents: zone.feeCents,
         totalCents: total,
         paymentMethod,
         changeForCents,

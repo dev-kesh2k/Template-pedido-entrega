@@ -5,7 +5,8 @@ import { clearCart, getCustomer, isValidPhone, maskPhone, saveCustomer, useCart 
 import { useConfig, reloadConfig } from '../../config';
 import { FullPage } from '../../layout';
 import { ErrorBox, Field, FormError, Loading, PageHead, Radio } from '../../ui';
-import { brl, fmtRelative, fmtWindow, METHOD, parseMoney } from '../../util';
+import { Calendar } from '../../calendar';
+import { brl, fmtLong, fmtWindow, METHOD, parseMoney } from '../../util';
 
 export default function Checkout() {
   const nav = useNavigate();
@@ -20,7 +21,7 @@ export default function Checkout() {
     houseNumber: saved.houseNumber || '',
     complement: saved.complement || '',
     reference: saved.reference || '',
-    zoneId: saved.zoneId || '',
+    district: saved.district || '',
     notes: '',
   });
   const [day, setDay] = useState('');
@@ -37,9 +38,6 @@ export default function Checkout() {
   const dates = config?.deliveryDates || [];
   const windows = dates.find((d) => d.day === day)?.windows || [];
   useEffect(() => {
-    if (!day && dates.length) setDay(dates[0].day);
-  }, [dates, day]);
-  useEffect(() => {
     if (win && !windows.includes(win)) setWin('');
   }, [windows, win]);
 
@@ -49,16 +47,13 @@ export default function Checkout() {
 
   const lines = (data?.products || []).filter((p) => cart[p.id]).map((p) => ({ p, qty: cart[p.id] }));
   const subtotal = lines.reduce((s, l) => s + l.p.priceCents * l.qty, 0);
-  const zone = data?.zones.find((z) => z.id === f.zoneId);
-  const fee = zone?.feeCents || 0;
-  const total = subtotal + fee;
+  const total = subtotal;
   const set = (k: keyof typeof f) => (e: { target: { value: string } }) => setF((s) => ({ ...s, [k]: e.target.value }));
 
   async function submit(e: FormEvent) {
     e.preventDefault();
     setErr('');
     if (!isValidPhone(f.phone)) return setErr('Informe o celular com DDD.');
-    if (!zone) return setErr('Escolha o bairro de entrega.');
     if (!day || !win) return setErr('Escolha o dia e o horário da entrega.');
     const changeFor = method === 'cash' ? parseMoney(change) || 0 : 0;
     if (changeFor && changeFor < total) return setErr(`O troco deve ser para mais de ${brl(total)}.`);
@@ -113,16 +108,6 @@ export default function Checkout() {
 
         <section className="flex flex-col gap-4">
           <h2 className="h2">Endereço de entrega</h2>
-          <Field label="Bairro">
-            <select className="input" value={f.zoneId} onChange={set('zoneId')} required>
-              <option value="">Escolha o bairro</option>
-              {data?.zones.map((z) => (
-                <option key={z.id} value={z.id}>
-                  {z.name} — {z.feeCents ? brl(z.feeCents) : 'grátis'}
-                </option>
-              ))}
-            </select>
-          </Field>
           <div className="grid grid-cols-[1fr_6.5rem] gap-3">
             <Field label="Rua">
               <input className="input" autoComplete="address-line1" value={f.street} onChange={set('street')} required maxLength={160} />
@@ -131,6 +116,9 @@ export default function Checkout() {
               <input className="input" value={f.houseNumber} onChange={set('houseNumber')} required maxLength={20} />
             </Field>
           </div>
+          <Field label="Bairro">
+            <input className="input" value={f.district} onChange={set('district')} required maxLength={80} />
+          </Field>
           <Field label="Complemento (opcional)">
             <input className="input" autoComplete="address-line2" value={f.complement} onChange={set('complement')} maxLength={80} placeholder="Apto, bloco, casa…" />
           </Field>
@@ -145,20 +133,21 @@ export default function Checkout() {
             <p className="rounded-xl bg-warnbg px-4 py-3 text-sm text-warn">Não há datas de entrega disponíveis no momento.</p>
           ) : (
             <>
-              <div className="no-scrollbar -mx-5 flex gap-2 overflow-x-auto px-5 min-[380px]:-mx-6 min-[380px]:px-6">
-                {dates.map((d) => (
-                  <button type="button" key={d.day} className={`chip ${day === d.day ? 'chip-on' : ''}`} onClick={() => setDay(d.day)}>
-                    {fmtRelative(d.day, config.today)}
-                  </button>
-                ))}
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                {windows.map((w) => (
-                  <button type="button" key={w} className={`chip ${win === w ? 'chip-on' : ''}`} onClick={() => setWin(w)}>
-                    {fmtWindow(w)}
-                  </button>
-                ))}
-              </div>
+              <Calendar available={dates.map((d) => d.day)} value={day} today={config.today} onChange={setDay} />
+              {day && (
+                <>
+                  <p className="font-medium">
+                    {fmtLong(day)} — escolha o horário
+                  </p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {windows.map((w) => (
+                      <button type="button" key={w} className={`chip ${win === w ? 'chip-on' : ''}`} onClick={() => setWin(w)}>
+                        {fmtWindow(w)}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
             </>
           )}
         </section>
@@ -196,8 +185,8 @@ export default function Checkout() {
             </div>
           ))}
           <div className="mt-2 flex justify-between border-t border-line pt-3 text-sm">
-            <span className="text-soft">Entrega{zone ? ` (${zone.name})` : ''}</span>
-            <span>{zone ? (fee ? brl(fee) : 'Grátis') : '—'}</span>
+            <span className="text-soft">Entrega</span>
+            <span className="font-medium text-ok">Grátis</span>
           </div>
           <div className="flex justify-between text-lg font-bold">
             <span>Total</span>

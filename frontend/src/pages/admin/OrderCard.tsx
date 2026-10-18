@@ -77,8 +77,8 @@ export function OrderCard({ order, onChange, storeName }: { order: Order; onChan
           </li>
         ))}
         <li className="flex justify-between gap-3 text-muted">
-          <span>Entrega ({o.zoneName})</span>
-          <span>{brl(o.feeCents)}</span>
+          <span>Entrega</span>
+          <span>Grátis</span>
         </li>
       </ul>
       <div className="flex flex-wrap items-center justify-between gap-2">
