@@ -1,4 +1,4 @@
-# Template App
+# Template — Pedido e Entrega
 
 Template de app de **pedido e entrega** (web e celular, instalável na Tela de Início): distribuidoras de chopp/bebidas, gás e água, marmitas, padarias etc. O nome da loja fica em Configurações (`storeName`, padrão "Meu Negócio"). No Criador de apps do Hub, `scripts/app-builder-template.js <slug> --name "Nome" --template pedido-entrega` copia este template para `projetos/<slug>`.
 
@@ -13,3 +13,22 @@ Template de app de **pedido e entrega** (web e celular, instalável na Tela de I
 
 ## Login inicial (loja)
 `SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD` do `backend/.env.example` (criado no primeiro start; também fica no Cofre do Hub). O cardápio de exemplo é criado uma vez e depois editado pelo painel.
+
+## Rodar localmente
+```bash
+# backend (Express + Prisma)
+cd backend
+cp .env.example .env          # ajuste DATABASE_URL e o login inicial
+npm install
+npx prisma migrate deploy
+npm run db:seed               # dados de exemplo (uma vez)
+npm start
+
+# frontend (React + Vite), em outro terminal
+cd frontend
+npm install
+npm run dev
+```
+
+## Publicação
+Este repositório é só o modelo: cada app criado a partir dele tem o próprio repositório e deploy.
